@@ -21,8 +21,7 @@ term, present value. return code only wrapped in a Markdown code block (triple b
 
 
 response = client.models.generate_content(
-    model="gemini-2.5-flash",
-    contents=generate_prompt()
+    model="gemini-2.5-flash", contents=generate_prompt()
 )
 
 # Use regex to find ANY content between triple backticks,
@@ -37,17 +36,17 @@ if match:
     # any leading/trailing whitespace or newlines.
     code_content = match.group(1).strip()
 
-    # If the model included a language identifier (like 'python') as the first line, 
+    # If the model included a language identifier (like 'python') as the first line,
     # we need to remove it. We check if the first line starts with a letter.
-    first_line = code_content.split('\n')[0].strip()
-    if first_line and re.match(r'^[a-zA-Z]+$', first_line):
-        code_content = '\n'.join(code_content.split('\n')[1:])
+    first_line = code_content.split("\n")[0].strip()
+    if first_line and re.match(r"^[a-zA-Z]+$", first_line):
+        code_content = "\n".join(code_content.split("\n")[1:])
 
     print("--- Extracted Code ---")
     print(code_content)
 
     # Write the cleaned content to the file
-    with open("loan_payment.py", 'w') as f:
+    with open("loan_payment.py", "w") as f:
         f.write(code_content)
 else:
     print("Error: Failed to find code block (```...```) in the response.")
