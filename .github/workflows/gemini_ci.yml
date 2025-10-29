@@ -1,0 +1,52 @@
+name: Gemini LLM CI Check
+
+# Triggers the workflow on every push or when a Pull Request is opened/updated
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+
+jobs:
+  test_llm_call:
+    # Use a clean, standard Linux runner
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      # This action pulls the code from the repository into the runner
+      uses: actions/checkout@v4
+
+    - name: Set up Python Environment
+      # This action sets up a Python version and creates an environment for the job
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x' # Use a recent stable Python version
+
+    - name: Install dependencies (including Black)
+      # This installs all packages needed by demo_make_llm_call.py and the linter
+      run: pip install -r requirements.txt
+
+    - name: Run Black Code Formatting Check
+      # Check the code style. If Black finds any unformatted files, the job fails.
+      run: |
+        echo "--- Running Black Code Style Check ---"
+        # The --check flag prevents Black from modifying files; it just reports errors
+        # The --diff flag shows what needs to be changed
+        black --check --diff .
+
+    - name: Run LLM Script and Validate Output
+      # Inject the API Key securely as an environment variable (Security Objective)
+      env:
+        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      run: |
+        echo "--- Starting LLM Generation Script Run ---"
+        # 1. Execute the script (Functional CI Test)
+        python demo_make_llm_call.py
+        
+        # 2. Validation Check: Ensure the output file was created (Test Success)
+        if [ ! -s loan_payment.py ]; then
+          echo "CI Failed: loan_payment.py was not created or is empty. Check API key and script logic."
+          exit 1
+        fi
+        echo "CI Passed: loan_payment.py created successfully."
